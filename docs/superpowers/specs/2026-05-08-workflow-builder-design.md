@@ -178,6 +178,7 @@ user_id      UUID FK → User
 name         str
 description  str nullable
 graph        JSONB   ← { nodes: [...], edges: [...] }
+version      int     ← starts at 1, incremented on each save (optimistic lock)
 created_at   datetime
 updated_at   datetime
 ```
@@ -200,6 +201,80 @@ A working canvas where authenticated team members can create workflows, drag and
 - **Phase 2:** Execution engine — ARQ worker, DAG runner, async task queue, retry logic, state persistence, WebSocket live status updates
 - **Phase 3:** Advanced nodes (RAG, Memory, Webhook, Human-in-loop) + integrations (Google Calendar, Gmail, Whisper, Pinecone)
 - **Phase 4:** Platform features — REST trigger API, run history + logs, usage metering, workflow templates
+
+---
+
+## Git & Collaboration Strategy
+
+### Branching Model — Trunk-Based Development
+
+```
+main  (protected — always deployable)
+  └── feature/<ticket>-<short-description>   ← 1–3 days max
+  └── fix/<ticket>-<short-description>
+  └── chore/<short-description>
+```
+
+- `main` is **protected**: direct pushes blocked, require PR + 1 approval
+- Feature branches are **short-lived** (1–3 days). If longer, use a feature flag and merge a stub
+- One person per branch — never commit to someone else's branch
+- Branch naming is enforced via a pre-push hook (fails if name doesn't match pattern)
+
+### PR Rules
+- Max **400 lines changed** per PR — split larger work into stacked PRs
+- PR title follows: `type(scope): description` — e.g. `feat(canvas): add LLM node config panel`
+- Required: passing CI (lint + type-check + tests) before review
+- Required: 1 approval from a different team member
+- Squash merge into `main` to keep history linear
+
+### Preventing Merge Conflicts
+
+**The three biggest conflict sources and how we avoid each:**
+
+**1. Node type files** — the sidebar component list is the most conflict-prone file in a canvas app. Each node type lives in its own file and is **auto-discovered** via directory scan — no central registry to edit:
+```
+apps/web/src/nodes/
+  trigger/index.tsx    ← self-contained
+  llm/index.tsx
+  condition/index.tsx
+  tool/index.tsx
+```
+Adding a new node type = adding a new folder. Zero chance of conflicting with another node PR.
+
+**2. Pydantic schemas / SQLAlchemy models** — each model in its own file, one model per file. No "models.py" mega-file:
+```
+apps/api/app/models/
+  user.py
+  workflow.py
+```
+
+**3. Concurrent edits to the same workflow** — two teammates opening the same workflow in the canvas at the same time will overwrite each other. Solved with **optimistic locking**:
+- `Workflow` table gains a `version: int` column (starts at 1)
+- `PUT /workflows/{id}` requires `{ graph, version }` in the body
+- If `version` in the request doesn't match DB, API returns `409 Conflict`
+- Frontend shows a toast: *"Someone else saved this workflow. Reload to see their changes."*
+- No silent data loss
+
+### Commit Message Convention
+```
+feat(scope):     new feature
+fix(scope):      bug fix
+chore(scope):    tooling, deps, config
+docs(scope):     documentation only
+refactor(scope): no behaviour change
+test(scope):     tests only
+```
+Enforced via `commitlint` + `husky` pre-commit hook.
+
+### Tooling Summary
+| Tool | Purpose |
+|---|---|
+| `husky` | Git hooks (pre-commit lint, commit-msg lint) |
+| `commitlint` | Enforce conventional commit format |
+| `lint-staged` | Run ESLint + Prettier only on staged files |
+| `ruff` | Python linter + formatter (fast, replaces flake8/black/isort) |
+| `turbo run lint` | Lint all apps in parallel |
+| Branch protection | Enforced via GitHub repo settings |
 
 ---
 
