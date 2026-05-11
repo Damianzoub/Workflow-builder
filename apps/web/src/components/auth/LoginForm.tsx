@@ -23,9 +23,13 @@ export default function LoginForm() {
 
   async function onSubmit(_data: LoginInput) {
     setLoading(true)
-    await new Promise((r) => setTimeout(r, 800))
-    login(mockUser)
-    router.replace('/dashboard')
+    try {
+      await new Promise((r) => setTimeout(r, 800))
+      login(mockUser)
+      router.replace('/dashboard')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

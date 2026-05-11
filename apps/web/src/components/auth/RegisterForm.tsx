@@ -23,21 +23,26 @@ export default function RegisterForm() {
 
   async function onSubmit(data: RegisterInput) {
     setLoading(true)
-    await new Promise((r) => setTimeout(r, 800))
-    const initials = data.name
-      .split(' ')
-      .map((w) => w[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
-    const newUser: MockUser = {
-      id: 'u-mock',
-      name: data.name,
-      email: data.email,
-      avatarInitials: initials,
+    try {
+      await new Promise((r) => setTimeout(r, 800))
+      const initials = data.name
+        .split(' ')
+        .filter(Boolean)
+        .map((w) => w[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+      const newUser: MockUser = {
+        id: 'u-mock',
+        name: data.name,
+        email: data.email,
+        avatarInitials: initials,
+      }
+      login(newUser)
+      router.replace('/dashboard')
+    } finally {
+      setLoading(false)
     }
-    login(newUser)
-    router.replace('/dashboard')
   }
 
   return (

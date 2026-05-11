@@ -6,6 +6,13 @@ import StatusBadge from './StatusBadge'
 import { sortWorkflows, type SortKey, type SortDir } from '@/lib/sort-workflows'
 import { mockWorkflows } from '@/mock/workflows'
 
+function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; sortDir: SortDir }) {
+  if (sortKey !== col) return <ChevronUp className="h-3 w-3 opacity-20" />
+  return sortDir === 'asc'
+    ? <ChevronUp className="h-3 w-3 text-indigo-400" />
+    : <ChevronDown className="h-3 w-3 text-indigo-400" />
+}
+
 export default function WorkflowsTable() {
   const [sortKey, setSortKey] = useState<SortKey>('modifiedAt')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
@@ -21,13 +28,6 @@ export default function WorkflowsTable() {
 
   const sorted = sortWorkflows(mockWorkflows, sortKey, sortDir)
 
-  function SortIcon({ col }: { col: SortKey }) {
-    if (sortKey !== col) return <ChevronUp className="h-3 w-3 opacity-20" />
-    return sortDir === 'asc'
-      ? <ChevronUp className="h-3 w-3 text-indigo-400" />
-      : <ChevronDown className="h-3 w-3 text-indigo-400" />
-  }
-
   const thClass = 'px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500'
   const sortableThClass = `${thClass} cursor-pointer hover:text-gray-300 select-none`
 
@@ -37,13 +37,13 @@ export default function WorkflowsTable() {
         <thead className="border-b border-gray-700">
           <tr>
             <th className={sortableThClass} onClick={() => handleSort('name')}>
-              <span className="flex items-center gap-1">Name <SortIcon col="name" /></span>
+              <span className="flex items-center gap-1">Name <SortIcon col="name" sortKey={sortKey} sortDir={sortDir} /></span>
             </th>
             <th className={sortableThClass} onClick={() => handleSort('createdAt')}>
-              <span className="flex items-center gap-1">Created <SortIcon col="createdAt" /></span>
+              <span className="flex items-center gap-1">Created <SortIcon col="createdAt" sortKey={sortKey} sortDir={sortDir} /></span>
             </th>
             <th className={sortableThClass} onClick={() => handleSort('modifiedAt')}>
-              <span className="flex items-center gap-1">Last Modified <SortIcon col="modifiedAt" /></span>
+              <span className="flex items-center gap-1">Last Modified <SortIcon col="modifiedAt" sortKey={sortKey} sortDir={sortDir} /></span>
             </th>
             <th className={thClass}>Creator</th>
             <th className={thClass}>Status</th>

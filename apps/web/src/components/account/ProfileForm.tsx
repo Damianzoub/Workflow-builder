@@ -27,6 +27,7 @@ export default function ProfileForm() {
     if (!user) return
     const initials = data.name
       .split(' ')
+      .filter(Boolean)
       .map((w) => w[0])
       .join('')
       .toUpperCase()
