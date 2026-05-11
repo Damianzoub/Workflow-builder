@@ -1,0 +1,9 @@
+{
+  "name": "workflow-builder",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -F web dev",
+    "build": "pnpm -F web build",
+    "test": "pnpm -F web test"
+  }
+}

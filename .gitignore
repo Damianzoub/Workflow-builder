@@ -1,6 +1,28 @@
 # Superpowers brainstorm sessions
 .superpowers/
 
+# Git worktrees
+.worktrees/
+
+# Node.js / pnpm
+node_modules/
+.pnpm-store/
+
+# Next.js
+apps/web/.next/
+apps/web/out/
+
+# Build outputs
+dist/
+build/
+
+# Environment variables
+.env.local
+.env.*.local
+
+# TypeScript build info
+*.tsbuildinfo
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -23,6 +45,7 @@ parts/
 sdist/
 var/
 wheels/
+docs/
 share/python-wheels/
 *.egg-info/
 .installed.cfg
